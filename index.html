@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Finanzas Personales</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #F5F2EC;
+      --surface: #FDFBF7;
+      --border: #DDD8CE;
+      --text: #1A1916;
+      --muted: #7A7670;
+      --income: #2D6A4F;
+      --income-bg: #D8F3DC;
+      --expense: #9B2335;
+      --expense-bg: #FADADD;
+      --accent: #C17D3C;
+      --accent-light: #F5E6D3;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.8rem;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+
+    header p {
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin-top: 0.4rem;
+      font-weight: 300;
+    }
+
+    .container {
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.3rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pill {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .pill-income { background: var(--income-bg); color: var(--income); }
+    .pill-expense { background: var(--expense-bg); color: var(--expense); }
+
+    .type-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 1.5rem;
+    }
+
+    .type-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.18s;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .type-btn.active-income {
+      background: var(--income-bg);
+      border-color: var(--income);
+      color: var(--income);
+      font-weight: 500;
+    }
+
+    .type-btn.active-expense {
+      background: var(--expense-bg);
+      border-color: var(--expense);
+      color: var(--expense);
+      font-weight: 500;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input, select, textarea {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+    }
+
+    textarea { resize: vertical; min-height: 70px; }
+
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      margin-top: 0.5rem;
+      border-radius: 10px;
+      border: none;
+      background: var(--text);
+      color: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .btn-submit:hover { opacity: 0.85; }
+    .btn-submit:active { transform: scale(0.99); }
+
+    .btn-export {
+      width: 100%;
+      padding: 13px;
+      border-radius: 10px;
+      border: 1.5px solid var(--accent);
+      background: var(--accent-light);
+      color: var(--accent);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-top: 0.5rem;
+    }
+
+    .btn-export:hover { background: var(--accent); color: white; }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    thead th {
+      text-align: left;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      font-weight: 500;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--bg); }
+
+    td {
+      padding: 10px 10px;
+      color: var(--text);
+    }
+
+    .amount-income { color: var(--income); font-weight: 500; }
+    .amount-expense { color: var(--expense); font-weight: 500; }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat {
+      background: var(--bg);
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .stat-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .stat-value { font-family: 'DM Serif Display', serif; font-size: 1.5rem; }
+    .stat-value.income { color: var(--income); }
+    .stat-value.expense { color: var(--expense); }
+    .stat-value.balance { color: var(--text); }
+
+    .empty {
+      text-align: center;
+      padding: 2rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-style: italic;
+    }
+
+    .del-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 1rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .del-btn:hover { color: var(--expense); background: var(--expense-bg); }
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--text);
+      color: var(--bg);
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      transition: transform 0.3s ease;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 600px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .summary { grid-template-columns: 1fr; }
+      header h1 { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Finanzas Personales</h1>
+    <p>Registra tus movimientos — datos guardados en Google Sheets</p>
+  </header>
+
+  <!-- Formulario -->
+  <div class="card">
+    <div class="card-title">Nuevo movimiento</div>
+
+    <div class="type-toggle">
+      <button class="type-btn active-income" id="btn-ingreso" onclick="setTipo('ingreso')">↑ Ingreso</button>
+      <button class="type-btn" id="btn-gasto" onclick="setTipo('gasto')">↓ Gasto</button>
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label>Categoría</label>
+        <select id="categoria"></select>
+      </div>
+      <div class="field">
+        <label>Monto (COP)</label>
+        <input type="number" id="monto" placeholder="Ej: 1500000" min="0" />
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label>Fecha</label>
+        <input type="date" id="fecha" />
+      </div>
+      <div class="field">
+        <label>Descripción (opcional)</label>
+        <input type="text" id="descripcion" placeholder="Ej: Mercado semana 1" />
+      </div>
+    </div>
+
+    <button class="btn-submit" onclick="agregar()">Agregar movimiento</button>
+  </div>
+
+  <!-- Resumen -->
+  <div class="card">
+    <div class="summary">
+      <div class="stat">
+        <div class="stat-label">Ingresos</div>
+        <div class="stat-value income" id="total-ing">$0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Gastos</div>
+        <div class="stat-value expense" id="total-gas">$0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Balance</div>
+        <div class="stat-value balance" id="total-bal">$0</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Categoría</th>
+            <th>Descripción</th>
+            <th>Fecha</th>
+            <th>Monto</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tabla-body">
+          <tr><td colspan="6" class="empty">Aún no hay movimientos registrados.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <button class="btn-export" onclick="abrirSheet()">Ver en Google Sheets →</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── Configuración ─────────────────────────────────────────────────────────────
+  const API_URL = 'https://script.google.com/macros/s/AKfycbydn2ABhrU-kKte1ylhr6nQo0frUN0LPiwzo4UQkGRpFgJsJ8oS9Od1oNMiuRoYMj5j/exec'; // ← Reemplaza con la URL de tu Google Apps Script
+  const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1L3jx8fWbBBwGNR2gpAioHNDfG15lUBOLGlyB1wfonvc/edit?gid=0#gid=0'; // ← Reemplaza con la URL de tu Google Sheet
+
+  const CATEGORIAS = {
+    ingreso: ['Salario', 'Freelance / Trabajo extra', 'Beca', 'Regalo', 'Arriendo recibido', 'Venta de artículos', 'Inversión / Rendimientos', 'Otro ingreso'],
+    gasto:   ['Arriendo', 'Alimentación', 'Transporte', 'Salud', 'Educación', 'Entretenimiento', 'Servicios (agua/luz/internet)', 'Ropa', 'Crédito / Deuda', 'Ahorro programado', 'Otro gasto']
+  };
+
+  let tipo = 'ingreso';
+  let movimientos = [];
+
+  // ── API ───────────────────────────────────────────────────────────────────────
+  async function cargarDatos() {
+    try {
+      const res = await fetch(API_URL);
+      movimientos = await res.json();
+      render();
+    } catch (e) {
+      showToast('Error al cargar datos');
+    }
+  }
+
+  async function apiPost(data) {
+    await fetch(API_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(data)
+    });
+  }
+
+  // ── UI ────────────────────────────────────────────────────────────────────────
+  function setTipo(t) {
+    tipo = t;
+    document.getElementById('btn-ingreso').className = 'type-btn' + (t === 'ingreso' ? ' active-income' : '');
+    document.getElementById('btn-gasto').className = 'type-btn' + (t === 'gasto' ? ' active-expense' : '');
+    const sel = document.getElementById('categoria');
+    sel.innerHTML = CATEGORIAS[t].map(c => `<option>${c}</option>`).join('');
+  }
+
+  function fmt(n) {
+    return '$' + Math.round(n).toLocaleString('es-CO');
+  }
+
+  function render() {
+    const body = document.getElementById('tabla-body');
+    if (!movimientos.length) {
+      body.innerHTML = '<tr><td colspan="6" class="empty">Aún no hay movimientos registrados.</td></tr>';
+    } else {
+      body.innerHTML = [...movimientos].reverse().map((m) => {
+        return `<tr>
+          <td><span class="pill ${m.tipo === 'ingreso' ? 'pill-income' : 'pill-expense'}">${m.tipo === 'ingreso' ? 'Ingreso' : 'Gasto'}</span></td>
+          <td>${m.categoria}</td>
+          <td style="color:var(--muted)">${m.descripcion || '—'}</td>
+          <td style="color:var(--muted)">${m.fecha}</td>
+          <td class="${m.tipo === 'ingreso' ? 'amount-income' : 'amount-expense'}">${m.tipo === 'ingreso' ? '+' : '-'}${fmt(m.monto)}</td>
+          <td><button class="del-btn" onclick="eliminar('${m.id}')">✕</button></td>
+        </tr>`;
+      }).join('');
+    }
+
+    const ing = movimientos.filter(m => m.tipo === 'ingreso').reduce((a, b) => a + +b.monto, 0);
+    const gas = movimientos.filter(m => m.tipo === 'gasto').reduce((a, b) => a + +b.monto, 0);
+    document.getElementById('total-ing').textContent = fmt(ing);
+    document.getElementById('total-gas').textContent = fmt(gas);
+    document.getElementById('total-bal').textContent = fmt(ing - gas);
+  }
+
+  async function agregar() {
+    const monto = parseFloat(document.getElementById('monto').value);
+    const fecha = document.getElementById('fecha').value;
+    const categoria = document.getElementById('categoria').value;
+    const descripcion = document.getElementById('descripcion').value.trim();
+
+    if (!monto || monto <= 0) { showToast('Ingresa un monto válido'); return; }
+    if (!fecha) { showToast('Selecciona una fecha'); return; }
+
+    const nuevo = { id: Date.now().toString(), tipo, monto, fecha, categoria, descripcion };
+
+    // Actualización optimista: muestra el dato de inmediato
+    movimientos.push(nuevo);
+    document.getElementById('monto').value = '';
+    document.getElementById('descripcion').value = '';
+    render();
+    showToast('Guardando...');
+
+    await apiPost({ action: 'add', movimiento: nuevo });
+    showToast('Movimiento guardado ✓');
+  }
+
+  async function eliminar(id) {
+    movimientos = movimientos.filter(m => m.id !== id);
+    render();
+    await apiPost({ action: 'delete', id });
+    showToast('Movimiento eliminado');
+  }
+
+  function abrirSheet() {
+    window.open(SHEET_URL, '_blank');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  // Init
+  const hoy = new Date().toISOString().split('T')[0];
+  document.getElementById('fecha').value = hoy;
+  setTipo('ingreso');
+  cargarDatos();
+</script>
+</body>
+</html>

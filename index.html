@@ -282,9 +282,57 @@
       .summary { grid-template-columns: 1fr; }
       header h1 { font-size: 2rem; }
     }
+
+    .lock-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .lock-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 340px;
+      text-align: center;
+    }
+    .lock-card h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem;
+      margin-bottom: 0.4rem;
+    }
+    .lock-card p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+      font-weight: 300;
+    }
+    .lock-error {
+      color: var(--expense);
+      font-size: 0.85rem;
+      margin-top: 0.75rem;
+      display: none;
+    }
   </style>
 </head>
 <body>
+
+<div class="lock-screen" id="lock-screen">
+  <div class="lock-card">
+    <h2>Finanzas Personales</h2>
+    <p>Ingresa tu clave para continuar</p>
+    <div class="field">
+      <input type="password" id="pwd-input" placeholder="Clave de acceso" onkeydown="if(event.key==='Enter')desbloquear()" />
+    </div>
+    <button class="btn-submit" onclick="desbloquear()" style="margin-top:1rem">Entrar</button>
+    <div class="lock-error" id="lock-error">Clave incorrecta. Intenta de nuevo.</div>
+  </div>
+</div>
 
 <div class="container">
   <header>
@@ -380,15 +428,20 @@
 
   let tipo = 'ingreso';
   let movimientos = [];
+  let pwd = '';
 
   // ── API ───────────────────────────────────────────────────────────────────────
   async function cargarDatos() {
     try {
-      const res = await fetch(API_URL);
-      movimientos = await res.json();
+      const res = await fetch(API_URL + '?pwd=' + encodeURIComponent(pwd));
+      const data = await res.json();
+      if (data.error === 'unauthorized') return false;
+      movimientos = data;
       render();
+      return true;
     } catch (e) {
       showToast('Error al cargar datos');
+      return false;
     }
   }
 
@@ -397,8 +450,22 @@
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(data)
+      body: JSON.stringify({ ...data, pwd })
     });
+  }
+
+  async function desbloquear() {
+    const input = document.getElementById('pwd-input').value.trim();
+    if (!input) return;
+    pwd = input;
+    const ok = await cargarDatos();
+    if (ok) {
+      localStorage.setItem('fp_pwd', pwd);
+      document.getElementById('lock-screen').style.display = 'none';
+    } else {
+      pwd = '';
+      document.getElementById('lock-error').style.display = 'block';
+    }
   }
 
   // ── UI ────────────────────────────────────────────────────────────────────────
@@ -492,7 +559,18 @@
   const hoy = new Date().toISOString().split('T')[0];
   document.getElementById('fecha').value = hoy;
   setTipo('ingreso');
-  cargarDatos();
+
+  pwd = localStorage.getItem('fp_pwd') || '';
+  if (pwd) {
+    cargarDatos().then(ok => {
+      if (ok) {
+        document.getElementById('lock-screen').style.display = 'none';
+      } else {
+        pwd = '';
+        localStorage.removeItem('fp_pwd');
+      }
+    });
+  }
 </script>
 </body>
 </html>

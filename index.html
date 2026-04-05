@@ -361,7 +361,8 @@
       </table>
     </div>
 
-    <button class="btn-export" onclick="abrirSheet()">Ver en Google Sheets →</button>
+    <button class="btn-export" onclick="generarReporte()" id="btn-reporte">Generar Reporte</button>
+    <button class="btn-export" onclick="abrirSheet()" style="margin-top:0.5rem">Ver en Google Sheets →</button>
   </div>
 </div>
 
@@ -464,6 +465,16 @@
     render();
     await apiPost({ action: 'delete', id });
     showToast('Movimiento eliminado');
+  }
+
+  async function generarReporte() {
+    const btn = document.getElementById('btn-reporte');
+    btn.textContent = 'Generando...';
+    btn.disabled = true;
+    await apiPost({ action: 'generarReporte' });
+    btn.textContent = 'Generar Reporte';
+    btn.disabled = false;
+    showToast('Reporte generado en Google Sheets');
   }
 
   function abrirSheet() {
